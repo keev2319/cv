@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body { margin: 0; background: #d8d8d8; }
+    iframe { width: 1440px; height: 1000px; border: 0; display: block; }
+    pre { display: none; }
+  </style>
+</head>
+<body>
+  <iframe id="frame" src="http://localhost:8765/" title="debug"></iframe>
+  <pre id="metrics"></pre>
+  <script>
+    const frame = document.getElementById("frame");
+    const params = new URLSearchParams(location.search);
+    const sectionId = params.get("section");
+    const theme = params.get("theme");
+    const filter = params.get("filter");
+    const filterGroup = params.get("group") || "skills";
+    const bottom = params.get("bottom");
+
+    frame.addEventListener("load", () => {
+      const doc = frame.contentDocument;
+      const win = frame.contentWindow;
+
+      const debugStyle = doc.createElement("style");
+      debugStyle.textContent =
+        "*,*::before,*::after{transition:none!important;animation:none!important}" +
+        ".js .reveal{opacity:1!important;transform:none!important}";
+      doc.head.appendChild(debugStyle);
+
+      if (theme === "dark" && doc.documentElement.dataset.theme !== "dark") {
+        doc.getElementById("theme-toggle").click();
+      }
+      if (theme === "light" && doc.documentElement.dataset.theme !== "light") {
+        doc.getElementById("theme-toggle").click();
+      }
+      if (filter) {
+        const bar = doc.querySelector(`[data-filter-group="${filterGroup}"]`);
+        const btn = bar && bar.querySelector(`[data-filter="${filter}"]`);
+        if (btn) btn.click();
+      }
+
+      const scroll = () => {
+        doc.documentElement.style.scrollBehavior = "auto";
+        doc.body.style.scrollBehavior = "auto";
+        if (bottom) {
+          win.scrollTo({ top: doc.documentElement.scrollHeight, behavior: "instant" });
+        } else if (sectionId) {
+          const target = doc.getElementById(sectionId);
+          if (target) {
+            const top = target.getBoundingClientRect().top + win.scrollY - 76;
+            win.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+          }
+        }
+      };
+
+      doc.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-visible"));
+      scroll();
+      setTimeout(scroll, 250);
+      setTimeout(scroll, 900);
+
+      document.getElementById("metrics").textContent = JSON.stringify({
+        scrollWidth: doc.documentElement.scrollWidth,
+        clientWidth: doc.documentElement.clientWidth,
+        theme: doc.documentElement.dataset.theme,
+        visibleSkillCards: doc.querySelectorAll("#skills-grid [data-category]:not([hidden])").length,
+        visibleProjectCards: doc.querySelectorAll("#projects-grid [data-category]:not([hidden])").length
+      });
+    });
+  </script>
+</body>
+</html>

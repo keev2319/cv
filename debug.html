@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; background: #ddd; }
+    iframe { width: 390px; height: 844px; border: 0; display: block; }
+    pre { position: fixed; right: 0; top: 0; max-width: 380px; background: white; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <iframe id="frame" src="http://localhost:8765/" title="debug"></iframe>
+  <pre id="metrics"></pre>
+  <script>
+    const frame = document.getElementById("frame");
+    frame.addEventListener("load", () => {
+      const doc = frame.contentDocument;
+      const win = frame.contentWindow;
+      const rect = (sel) => {
+        const el = doc.querySelector(sel);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { left: Math.round(r.left), right: Math.round(r.right), width: Math.round(r.width) };
+      };
+      document.getElementById("metrics").textContent = JSON.stringify({
+        innerWidth: win.innerWidth,
+        docScrollWidth: doc.documentElement.scrollWidth,
+        bodyScrollWidth: doc.body.scrollWidth,
+        container: rect(".hero .container"),
+        heroGrid: rect(".hero-grid"),
+        heroCopy: rect(".hero-copy"),
+        heroName: rect(".hero-name"),
+        heroSummary: rect(".hero-summary"),
+        header: rect(".header-inner"),
+        headerActions: rect(".header-actions"),
+        profileStage: rect(".profile-stage"),
+        profileCard: rect(".profile-card"),
+        nav: rect(".site-nav")
+      }, null, 2);
+    });
+  </script>
+</body>
+</html>
